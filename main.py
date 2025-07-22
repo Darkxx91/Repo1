@@ -5,8 +5,9 @@ import cgi
 from http.cookies import SimpleCookie
 import random
 import database
+import os
 
-PORT = 8000
+PORT = int(os.environ.get('PORT', 8000))
 QUOTES_FILE = 'quotes.json'
 
 def get_quotes():
