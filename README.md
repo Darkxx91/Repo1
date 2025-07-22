@@ -2,6 +2,12 @@
 
 This is a simple subscription-based service that provides access to a "daily quote" API.
 
+## How to set up
+
+1. Clone the repository.
+2. Install the dependencies: `pip install -r requirements.txt`
+3. Initialize the database: `python database.py`
+
 ## How to run
 
 To run the web server, execute the following command:
@@ -47,3 +53,11 @@ To access the protected area, navigate to `http://localhost:8000/protected.html`
 ### API
 
 To get a JSON response from the API, navigate to `http://localhost:8000/api`.
+
+## How to run tests
+
+To run the tests, execute the following command:
+
+```bash
+python test_main.py
+```
