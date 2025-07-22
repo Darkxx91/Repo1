@@ -3,9 +3,11 @@ import socketserver
 import json
 import cgi
 from http.cookies import SimpleCookie
+import random
 
 PORT = 8000
 USERS_FILE = 'users.json'
+QUOTES_FILE = 'quotes.json'
 
 def get_users():
     with open(USERS_FILE, 'r') as f:
@@ -14,6 +16,10 @@ def get_users():
 def save_users(users):
     with open(USERS_FILE, 'w') as f:
         json.dump(users, f)
+
+def get_quotes():
+    with open(QUOTES_FILE, 'r') as f:
+        return json.load(f)
 
 class MyHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -37,6 +43,25 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({'message': 'Hello, World!'}).encode())
+        elif self.path == '/api/quote':
+            if 'session' in cookie:
+                username = cookie['session'].value
+                users = get_users()
+                if username in users and users[username].get('subscribed', False):
+                    quotes = get_quotes()['quotes']
+                    quote = random.choice(quotes)
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'quote': quote}).encode())
+                else:
+                    self.send_response(401)
+                    self.end_headers()
+                    self.wfile.write(b'Unauthorized')
+            else:
+                self.send_response(401)
+                self.end_headers()
+                self.wfile.write(b'Unauthorized')
         else:
             super().do_GET()
 
@@ -55,7 +80,7 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b'Username already exists')
             else:
-                users[username] = password
+                users[username] = {'password': password, 'subscribed': False}
                 save_users(users)
                 self.send_response(200)
                 self.end_headers()
@@ -69,7 +94,7 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             username = form.getvalue('username')
             password = form.getvalue('password')
             users = get_users()
-            if username in users and users[username] == password:
+            if username in users and users[username]['password'] == password:
                 self.send_response(200)
                 self.send_header('Set-Cookie', f'session={username}')
                 self.end_headers()
@@ -78,6 +103,25 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(401)
                 self.end_headers()
                 self.wfile.write(b'Invalid credentials')
+        elif self.path == '/subscribe':
+            cookie = SimpleCookie(self.headers.get('Cookie'))
+            if 'session' in cookie:
+                username = cookie['session'].value
+                users = get_users()
+                if username in users:
+                    users[username]['subscribed'] = True
+                    save_users(users)
+                    self.send_response(200)
+                    self.end_headers()
+                    self.wfile.write(b'Subscription successful')
+                else:
+                    self.send_response(401)
+                    self.end_headers()
+                    self.wfile.write(b'Unauthorized')
+            else:
+                self.send_response(401)
+                self.end_headers()
+                self.wfile.write(b'Unauthorized')
 
 with socketserver.TCPServer(("", PORT), MyHandler) as httpd:
     print("serving at port", PORT)

@@ -1,6 +1,6 @@
-# Simple User Authentication
+# Daily Quote Subscription Service
 
-This is a simple user authentication system in Python.
+This is a simple subscription-based service that provides access to a "daily quote" API.
 
 ## How to run
 
@@ -27,6 +27,18 @@ To login, send a POST request to `http://localhost:8000/login` with the followin
 - `password`: your password
 
 If the login is successful, you will receive a session cookie.
+
+### Pricing
+
+To view the pricing page, navigate to `http://localhost:8000/pricing.html`.
+
+### Subscription
+
+To subscribe to the service, click the "Subscribe" button on the pricing page. You must be logged in to subscribe.
+
+### Daily Quote API
+
+To get a random quote from the API, navigate to `http://localhost:8000/api/quote`. You must be subscribed to access this API.
 
 ### Protected Area
 
